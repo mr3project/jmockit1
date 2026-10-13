@@ -47,9 +47,6 @@
                 </executions>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
-                    <args>
-                        <arg>-release:21</arg>
-                    </args>
                 </configuration>
             </plugin>
             <plugin>
