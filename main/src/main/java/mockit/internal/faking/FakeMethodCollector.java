@@ -8,7 +8,6 @@ package mockit.internal.faking;
 import static mockit.asm.jvmConstants.Access.ABSTRACT;
 import static mockit.asm.jvmConstants.Access.BRIDGE;
 import static mockit.asm.jvmConstants.Access.NATIVE;
-import static mockit.asm.jvmConstants.Access.SYNTHETIC;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -33,7 +32,9 @@ import mockit.internal.util.TypeDescriptor;
  * as {@link Mock fakes}.
  */
 final class FakeMethodCollector {
-    private static final int INVALID_METHOD_ACCESSES = BRIDGE + SYNTHETIC + ABSTRACT + NATIVE;
+    // Scala may mark an explicitly annotated @Mock method synthetic. Exclude bridges,
+    // which can duplicate another annotated method, but retain annotated synthetic methods.
+    private static final int INVALID_METHOD_ACCESSES = BRIDGE + ABSTRACT + NATIVE;
     private static final EnumSet<Attribute> ANNOTATIONS = EnumSet.of(Attribute.Annotations);
 
     @NonNull
