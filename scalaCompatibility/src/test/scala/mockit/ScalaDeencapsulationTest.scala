@@ -10,6 +10,21 @@ class ScalaDeencapsulationTest {
   }
   class Child extends Parent
 
+  class Outer {
+    private val label = "outer"
+    class Inner {
+      def readLabel: String = label
+    }
+  }
+
+  @Test
+  def readsSyntheticOuterReferenceByType(): Unit = {
+    val outer = new Outer
+    val inner = new outer.Inner
+    assertEquals("outer", inner.readLabel)
+    assertSame(outer, Deencapsulation.getField[Outer](inner, classOf[Outer]))
+  }
+
   @Test
   def readsInheritedPrivateField(): Unit = {
     val child = new Child
