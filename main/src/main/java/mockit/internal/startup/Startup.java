@@ -15,7 +15,6 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 
 import mockit.internal.ClassIdentification;
-import mockit.internal.expectations.transformation.ExpectationsTransformer;
 import mockit.internal.state.CachedClassfiles;
 
 /**
@@ -62,7 +61,6 @@ public final class Startup {
             initializing = false;
         }
 
-        inst.addTransformer(new ExpectationsTransformer());
     }
 
     @NonNull
