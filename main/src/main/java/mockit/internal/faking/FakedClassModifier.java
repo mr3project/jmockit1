@@ -55,7 +55,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
  * Any fields (static or not) in the real class remain untouched.
  */
 final class FakedClassModifier extends BaseClassModifier {
-    private static final int ABSTRACT_OR_SYNTHETIC = Access.ABSTRACT + Access.SYNTHETIC;
+    private static final int ABSTRACT_OR_BRIDGE = Access.ABSTRACT + Access.BRIDGE;
 
     @NonNull
     private final FakeMethods fakeMethods;
@@ -106,7 +106,9 @@ final class FakedClassModifier extends BaseClassModifier {
     @Override
     public MethodVisitor visitMethod(int access, @NonNull String name, @NonNull String desc, @Nullable String signature,
             @Nullable String[] exceptions) {
-        if ((access & ABSTRACT_OR_SYNTHETIC) != 0) {
+        // A Scala compiler-generated forwarder may be SYNTHETIC without being a BRIDGE.
+        // Only skip bridges, whose body usually forwards to the concrete implementation.
+        if ((access & ABSTRACT_OR_BRIDGE) != 0) {
             if (isAbstract(access)) {
                 // Marks a matching fake method (if any) as having the corresponding faked method.
                 fakeMethods.findMethod(access, name, desc, signature);
