@@ -28,7 +28,8 @@ class ScalaFakingTest {
         assertSame(counter, invocation.getInvokedInstance[Counter]())
         assertEquals(1, invocation.getInvocationCount)
         seenArgs = seenArgs :+ invocation.getInvokedArguments()(0).asInstanceOf[Int]
-        invocation.proceed[Int](i + 1)
+        val replacement: AnyRef = Int.box(i + 1)
+        invocation.proceed[java.lang.Integer](replacement).intValue()
       }
     }
     assertEquals(4, counter.increment(2))
