@@ -11,6 +11,8 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.instrument.ClassDefinition;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import mockit.MockUp;
 import mockit.asm.classes.ClassReader;
@@ -80,8 +82,12 @@ public final class FakeClassSetup {
     public void redefineMethods() {
         @Nullable
         Class<?> classToModify = realClass;
+        Set<Class<?>> interfaces = new LinkedHashSet<>();
 
         while (classToModify != null && fakeMethods.hasUnusedFakes()) {
+            for (Class<?> implementedInterface : classToModify.getInterfaces()) {
+                collectInterfaces(implementedInterface, interfaces);
+            }
             byte[] modifiedClassFile = modifyRealClass(classToModify);
 
             if (modifiedClassFile != null) {
@@ -93,6 +99,29 @@ public final class FakeClassSetup {
             rcReader = null;
         }
 
+        // In Scala 2.12, a concrete trait method can live in the interface itself,
+        // rather than in the implementing class. Preserve the same instance guard
+        // used when faking inherited methods.
+        for (Class<?> implementedInterface : interfaces) {
+            if (!fakeMethods.hasUnusedFakes()) {
+                break;
+            }
+
+            rcReader = null;
+            byte[] modifiedClassFile = modifyRealClass(implementedInterface);
+            if (modifiedClassFile != null) {
+                applyClassModifications(implementedInterface, modifiedClassFile);
+            }
+        }
+    }
+
+    private static void collectInterfaces(@NonNull Class<?> implementedInterface,
+            @NonNull Set<Class<?>> interfaces) {
+        if (interfaces.add(implementedInterface)) {
+            for (Class<?> superInterface : implementedInterface.getInterfaces()) {
+                collectInterfaces(superInterface, interfaces);
+            }
+        }
     }
 
     @Nullable
