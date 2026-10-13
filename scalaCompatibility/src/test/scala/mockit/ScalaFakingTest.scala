@@ -37,12 +37,48 @@ class ScalaFakingTest {
 
   @Test
   def fakesScalaSingleton(): Unit = {
-    new MockUp[ScalaSingletonTarget.type] {
+    val fake = new MockUp[ScalaSingletonTarget.type] {
       @Mock
       def value(): Int = 7
     }
     assertEquals(7, ScalaSingletonTarget.value())
+    assertSame(ScalaSingletonTarget, fake.getMockInstance())
   }
+
+  @Test
+  def fakesConcreteScalaTraitMethod(): Unit = {
+    val target = new ScalaTraitImplementation
+    val unaffected = new ScalaOtherTraitImplementation
+    new MockUp[ScalaTraitImplementation] {
+      @Mock
+      def compute(value: Int): Int = value + 20
+    }
+    assertEquals(23, target.compute(3))
+    assertEquals(4, unaffected.compute(3))
+  }
+
+  @Test
+  def fakesGenericOverrideViaBridge(): Unit = {
+    val target: ScalaGenericBase[String] = new ScalaGenericImplementation
+    new MockUp[ScalaGenericImplementation] {
+      @Mock
+      def transform(value: String): String = "fake-" + value
+    }
+    assertEquals("fake-hello", target.transform("hello"))
+  }
+}
+
+trait ScalaTraitDefault {
+  def compute(value: Int): Int = value + 1
+}
+class ScalaTraitImplementation extends ScalaTraitDefault
+class ScalaOtherTraitImplementation extends ScalaTraitDefault
+
+class ScalaGenericBase[T] {
+  def transform(value: T): T = value
+}
+class ScalaGenericImplementation extends ScalaGenericBase[String] {
+  override def transform(value: String): String = value + "!"
 }
 
 object ScalaSingletonTarget {
