@@ -113,23 +113,20 @@ public final class FieldReflection {
             boolean instanceField, boolean forAssignment) {
         Field found = null;
         Field syntheticFallback = null;
+        boolean ambiguousSynthetic = false;
 
         for (Field field : theClass.getDeclaredFields()) {
-            {
-                Type fieldType = field.getGenericType();
-
-                if (instanceField != isStatic(field.getModifiers())
-                        && isCompatibleFieldType(fieldType, desiredType, forAssignment)) {
-                    if (field.isSynthetic()) {
-                        // Use a synthetic Scala field only if no ordinary field matches.
-                        if (syntheticFallback != null) {
-                            syntheticFallback = null;
-                            // More than one synthetic match is ambiguous; keep it unresolved.
-                        } else {
-                            syntheticFallback = field;
-                        }
-                        continue;
+            Type fieldType = field.getGenericType();
+            if (instanceField != isStatic(field.getModifiers())
+                    && isCompatibleFieldType(fieldType, desiredType, forAssignment)) {
+                if (field.isSynthetic()) {
+                    // Scala outer-instance references may be synthetic. Use only an unambiguous fallback.
+                    if (syntheticFallback != null) {
+                        ambiguousSynthetic = true;
+                    } else {
+                        syntheticFallback = field;
                     }
+                } else {
                     if (found != null) {
                         String message = errorMessageForMoreThanOneFieldFound(desiredType, instanceField, forAssignment,
                                 found, field);
@@ -141,9 +138,10 @@ public final class FieldReflection {
             }
         }
 
-        return found != null ? found : syntheticFallback;
+        return found != null ? found : ambiguousSynthetic ? null : syntheticFallback;
     }
 
+    @Nullable
     private static boolean isCompatibleFieldType(@NonNull Type fieldType, @NonNull Type desiredType,
             boolean forAssignment) {
         Class<?> fieldClass = Utilities.getClassType(fieldType);
