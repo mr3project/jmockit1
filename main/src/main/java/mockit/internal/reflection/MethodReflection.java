@@ -60,19 +60,23 @@ public final class MethodReflection {
     @Nullable
     private static Method findSpecifiedMethodInGivenClass(@NonNull Class<?> theClass, @NonNull String methodName,
             @NonNull Class<?>[] paramTypes) {
+        Method bridgeFallback = null;
         for (Method declaredMethod : theClass.getDeclaredMethods()) {
             if (declaredMethod.getName().equals(methodName)) {
                 Class<?>[] declaredParameterTypes = declaredMethod.getParameterTypes();
                 int firstRealParameter = indexOfFirstRealParameter(declaredParameterTypes, paramTypes);
 
                 if (firstRealParameter >= 0
-                        && matchesParameterTypes(declaredMethod.getParameterTypes(), paramTypes, firstRealParameter)) {
-                    return declaredMethod;
+                        && matchesParameterTypes(declaredParameterTypes, paramTypes, firstRealParameter)) {
+                    if (!declaredMethod.isBridge()) {
+                        return declaredMethod;
+                    }
+                    bridgeFallback = declaredMethod;
                 }
             }
         }
 
-        return null;
+        return bridgeFallback;
     }
 
     @Nullable
@@ -221,7 +225,9 @@ public final class MethodReflection {
                 if (firstRealParameter >= 0
                         && (matchesParameterTypes(declaredParamTypes, argTypes, firstRealParameter)
                                 || acceptsArgumentTypes(declaredParamTypes, argTypes, firstRealParameter))
-                        && (foundParamTypes == null || hasMoreSpecificTypes(declaredParamTypes, foundParamTypes))) {
+                        && (foundParamTypes == null || hasMoreSpecificTypes(declaredParamTypes, foundParamTypes)
+                                || (found != null && found.isBridge() && !declaredMethod.isBridge()
+                                        && !hasMoreSpecificTypes(foundParamTypes, declaredParamTypes)))) {
                     found = declaredMethod;
                     foundParamTypes = declaredParamTypes;
                 }
