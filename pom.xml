@@ -36,6 +36,7 @@
         <module>coverageTests</module>
         <module>main</module>
         <module>samples</module>
+        <module>scalaCompatibility</module>
     </modules>
 
     <scm>
