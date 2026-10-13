@@ -33,4 +33,6 @@ jobs:
       - name: Test with Maven
         uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9 # v1
         with:
-          run: ./mvnw test --batch-mode --no-transfer-progress --show-version -D"license.skip=true"
+          run: |
+            ./mvnw -pl main -am install --batch-mode --no-transfer-progress --show-version -DskipTests -D"license.skip=true"
+            ./mvnw test --batch-mode --no-transfer-progress --show-version -D"license.skip=true"
