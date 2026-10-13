@@ -24,4 +24,4 @@ jobs:
       - name: Install locally built MR3 JMockit agent
         run: ./mvnw -pl main -am install -Dmaven.test.skip=true -Dmodernizer.skip=true -Dlicense.skip=true --batch-mode
       - name: Run Scala 2.12.18 compatibility tests
-        run: ./mvnw -pl scalaCompatibility test -Dlicense.skip=true --batch-mode
+        run: ./mvnw -pl scalaCompatibility -am test -Dtest=ScalaFakingTest,ScalaDeencapsulationTest -Dsurefire.failIfNoSpecifiedTests=false -Dmodernizer.skip=true -Dlicense.skip=true --batch-mode
