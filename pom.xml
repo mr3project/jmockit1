@@ -19,7 +19,7 @@
 
     <groupId>com.github.hazendaz.jmockit</groupId>
     <artifactId>jmockit-parent</artifactId>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.3.1.mr3.3.0</version>
     <packaging>pom</packaging>
 
     <name>jmockit-parent</name>
@@ -65,8 +65,8 @@
         <!-- Automatic Module Name -->
         <module.name>com.github.hazendaz.jmockit.parent</module.name>
 
-        <!-- Released jmockit -->
-        <agent.version>2.3.0</agent.version>
+        <!-- MR3 fork agent installed before test execution -->
+        <agent.version>2.3.1.mr3.3.0</agent.version>
 
         <!-- Surefire Argline -->
         <argLine>-javaagent:${settings.localRepository}/com/github/hazendaz/jmockit/jmockit/${agent.version}/jmockit-${agent.version}.jar</argLine>
