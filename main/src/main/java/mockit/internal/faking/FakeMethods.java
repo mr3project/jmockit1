@@ -67,7 +67,7 @@ final class FakeMethods {
             this.name = name;
             this.desc = desc;
 
-            if (desc.contains("Lmockit/Invocation;")) {
+            if (desc.startsWith("(Lmockit/Invocation;")) {
                 fakeDescWithoutInvocationParameter = '(' + desc.substring(20);
                 isByNameOnly = name.charAt(0) != '$' && fakeDescWithoutInvocationParameter.startsWith("()");
                 isAdvice = "$advice".equals(name) && "()Ljava/lang/Object;".equals(fakeDescWithoutInvocationParameter);
