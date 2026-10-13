@@ -12,6 +12,8 @@ import static mockit.internal.util.GeneratedClasses.isGeneratedImplementationCla
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -314,6 +316,37 @@ public abstract class MockUp<T> {
 
         if (Proxy.isProxyClass(mockedClass)) {
             return MockInvocationHandler.newMockedInstance(mockedClass);
+        }
+
+        // Scala 2.12 module classes expose their unique instance through MODULE$.
+        // Returning an Objenesis instance here would violate Scala singleton identity.
+        if (mockedClass.getName().endsWith("$")) {
+            try {
+                Field moduleField = mockedClass.getDeclaredField("MODULE$");
+                if (Modifier.isStatic(moduleField.getModifiers()) && moduleField.getType() == mockedClass) {
+                    moduleField.setAccessible(true);
+                    return moduleField.get(null);
+                }
+            } catch (NoSuchFieldException ignored) {
+                // A JVM class ending in '
+    }
+
+    /**
+     * An empty method that can be overridden in a mock-up subclass that wants to be notified whenever the mock-up is
+     * automatically torn down. Tear down happens when the mock-up goes out of scope: at the end of the test when
+     * applied inside a test, at the end of the test class when applied before the test class, or at the end of the test
+     * run when applied through the "<code>mockups</code>" system property.
+     * <p>
+     * By default, this method does nothing.
+     */
+    protected void onTearDown() {
+    }
+
+}
+ is not necessarily a Scala module.
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Cannot access Scala module " + mockedClass.getName(), e);
+            }
         }
 
         return ConstructorReflection.newUninitializedInstance(mockedClass);
