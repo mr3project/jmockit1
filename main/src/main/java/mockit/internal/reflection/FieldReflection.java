@@ -112,13 +112,24 @@ public final class FieldReflection {
     private static Field getDeclaredFieldInSingleClass(@NonNull Class<?> theClass, @NonNull Type desiredType,
             boolean instanceField, boolean forAssignment) {
         Field found = null;
+        Field syntheticFallback = null;
 
         for (Field field : theClass.getDeclaredFields()) {
-            if (!field.isSynthetic()) {
+            {
                 Type fieldType = field.getGenericType();
 
                 if (instanceField != isStatic(field.getModifiers())
                         && isCompatibleFieldType(fieldType, desiredType, forAssignment)) {
+                    if (field.isSynthetic()) {
+                        // Use a synthetic Scala field only if no ordinary field matches.
+                        if (syntheticFallback != null) {
+                            syntheticFallback = null;
+                            // More than one synthetic match is ambiguous; keep it unresolved.
+                        } else {
+                            syntheticFallback = field;
+                        }
+                        continue;
+                    }
                     if (found != null) {
                         String message = errorMessageForMoreThanOneFieldFound(desiredType, instanceField, forAssignment,
                                 found, field);
@@ -130,7 +141,7 @@ public final class FieldReflection {
             }
         }
 
-        return found;
+        return found != null ? found : syntheticFallback;
     }
 
     private static boolean isCompatibleFieldType(@NonNull Type fieldType, @NonNull Type desiredType,
