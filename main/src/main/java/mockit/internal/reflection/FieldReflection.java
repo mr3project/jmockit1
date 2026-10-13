@@ -141,7 +141,6 @@ public final class FieldReflection {
         return found != null ? found : ambiguousSynthetic ? null : syntheticFallback;
     }
 
-    @Nullable
     private static boolean isCompatibleFieldType(@NonNull Type fieldType, @NonNull Type desiredType,
             boolean forAssignment) {
         Class<?> fieldClass = Utilities.getClassType(fieldType);
