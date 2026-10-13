@@ -66,6 +66,9 @@
         <!-- Automatic Module Name -->
         <module.name>com.github.hazendaz.jmockit.parent</module.name>
 
+        <!-- Use a published Surefire provider version with the required TestNG provider. -->
+        <surefire.plugin>3.5.4</surefire.plugin>
+
         <!-- MR3 fork agent installed before test execution -->
         <agent.version>2.3.1.mr3.3.0</agent.version>
 
