@@ -133,12 +133,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- SLF4J -->
+        <!-- SLF4J (only for this library; do not override consumers' logging API) -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
-            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
