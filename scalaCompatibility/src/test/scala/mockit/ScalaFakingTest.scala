@@ -58,6 +58,55 @@ class ScalaFakingTest {
     assertEquals(4, unaffected.compute(3))
   }
 
+
+  @Test
+  def interceptsScalaCompanionApplyAndProceedsBeforeTerminate(): Unit = {
+    val created = scala.collection.mutable.ArrayBuffer.empty[Int]
+
+    new MockUp[ScalaDagFactorySample.type] {
+      @Mock
+      def apply(
+          inv: Invocation,
+          dagId: Int,
+          dagName: String,
+          config: ScalaDagConfigSample,
+          userName: String,
+          submitter: String,
+          resources: Map[String, String],
+          metaData: Map[String, Long],
+          priority: Int,
+          queue: String,
+          appContext: ScalaDagContextSample,
+          jobConf: Option[String]): ScalaDagInstanceSample = {
+        created.synchronized {
+          created += dagId
+        }
+        inv.proceed[ScalaDagInstanceSample]()
+      }
+    }
+
+    new MockUp[ScalaDagInstanceSample] {
+      @Mock
+      def terminate(inv: Invocation, isFatal: Boolean): Unit = {
+        val dagId = inv.getInvokedInstance[ScalaDagInstanceSample]().dagId
+        created.synchronized {
+          assertTrue(created.contains(dagId), "DAG.apply was not intercepted before termination")
+          created -= dagId
+        }
+        inv.proceed[Unit]()
+      }
+    }
+
+    val dag = ScalaDagFactorySample(
+      27, "dag", new ScalaDagConfigSample, "user", "submitter",
+      Map("file" -> "resource"), Map("len" -> 4L), 10, "queue",
+      new ScalaDagContextSample, Some("conf"))
+    assertEquals(27, dag.dagId)
+    assertTrue(created.contains(27), "Scala companion apply was not intercepted")
+    dag.terminate(false)
+    assertTrue(created.isEmpty, "DAG was not removed on termination")
+  }
+
   @Test
   def unmockedInheritedAbstractTraitMethodReturnsDefault(): Unit = {
     val vertex = new MockUp[WorkerVertexSample] {
@@ -112,6 +161,28 @@ trait VertexSample {
   def name: String
 }
 trait WorkerVertexSample extends VertexSample with WorkerVertexRuntimeSample
+
+
+final class ScalaDagConfigSample
+final class ScalaDagContextSample
+final class ScalaDagInstanceSample(val dagId: Int) {
+  def terminate(isFatal: Boolean): Unit = ()
+}
+object ScalaDagFactorySample {
+  def apply(
+      dagId: Int,
+      dagName: String,
+      config: ScalaDagConfigSample,
+      userName: String,
+      submitter: String,
+      resources: Map[String, String],
+      metaData: Map[String, Long],
+      priority: Int,
+      queue: String,
+      appContext: ScalaDagContextSample,
+      jobConf: Option[String]): ScalaDagInstanceSample =
+    new ScalaDagInstanceSample(dagId)
+}
 
 object ScalaSingletonTarget {
   def value(): Int = 1
