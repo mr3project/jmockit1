@@ -59,6 +59,21 @@ class ScalaFakingTest {
   }
 
   @Test
+  def unmockedInheritedAbstractTraitMethodReturnsDefault(): Unit = {
+    val vertex = new MockUp[WorkerVertexSample] {
+      @Mock
+      def vertexId: Int = 42
+      @Mock
+      def name: String = "vertex42"
+    }.getMockInstance()
+
+    assertEquals(42, vertex.vertexId)
+    assertEquals("vertex42", vertex.name)
+    assertNull(vertex.seedName)
+    assertNull(vertex.dagUgi)
+  }
+
+  @Test
   def fakesGenericOverrideViaBridge(): Unit = {
     val target: ScalaGenericBase[String] = new ScalaGenericImplementation
     new MockUp[ScalaGenericImplementation] {
@@ -81,6 +96,19 @@ class ScalaGenericBase[T] {
 class ScalaGenericImplementation extends ScalaGenericBase[String] {
   override def transform(value: String): String = value + "!"
 }
+
+
+sealed trait VertexRuntimeSample {
+  def seedName: String
+  def dagUgi: String
+  def notifyError(cause: Exception): Unit
+}
+trait WorkerVertexRuntimeSample extends VertexRuntimeSample
+trait VertexSample {
+  def vertexId: Int
+  def name: String
+}
+trait WorkerVertexSample extends VertexSample with WorkerVertexRuntimeSample
 
 object ScalaSingletonTarget {
   def value(): Int = 1
