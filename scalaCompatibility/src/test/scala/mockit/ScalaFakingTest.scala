@@ -71,6 +71,8 @@ class ScalaFakingTest {
     assertEquals("vertex42", vertex.name)
     assertNull(vertex.seedName)
     assertNull(vertex.dagUgi)
+    assertEquals(0, vertex.attemptCount)
+    vertex.notifyError(new Exception("ignored"))
   }
 
   @Test
@@ -101,6 +103,7 @@ class ScalaGenericImplementation extends ScalaGenericBase[String] {
 sealed trait VertexRuntimeSample {
   def seedName: String
   def dagUgi: String
+  def attemptCount: Int
   def notifyError(cause: Exception): Unit
 }
 trait WorkerVertexRuntimeSample extends VertexRuntimeSample
