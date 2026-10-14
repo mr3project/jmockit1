@@ -77,18 +77,18 @@ class ScalaFakingTest {
           priority: Int,
           queue: String,
           appContext: ScalaDagContextSample,
-          jobConf: Option[String]): ScalaDagInstanceSample = {
+          jobConf: Option[String]): ScalaDagFactorySample = {
         created.synchronized {
           created += dagId
         }
-        inv.proceed[ScalaDagInstanceSample]()
+        inv.proceed[ScalaDagFactorySample]()
       }
     }
 
     new MockUp[ScalaDagInstanceSample] {
       @Mock
       def terminate(inv: Invocation, isFatal: Boolean): Unit = {
-        val dagId = inv.getInvokedInstance[ScalaDagInstanceSample]().dagId
+        val dagId = inv.getInvokedInstance[ScalaDagFactorySample]().dagId
         created.synchronized {
           assertTrue(created.contains(dagId), "DAG.apply was not intercepted before termination")
           created -= dagId
@@ -165,7 +165,11 @@ trait WorkerVertexSample extends VertexSample with WorkerVertexRuntimeSample
 
 final class ScalaDagConfigSample
 final class ScalaDagContextSample
-final class ScalaDagInstanceSample(val dagId: Int) {
+trait ScalaDagFactorySample {
+  def dagId: Int
+  def terminate(isFatal: Boolean): Unit
+}
+final class ScalaDagInstanceSample(val dagId: Int) extends ScalaDagFactorySample {
   def terminate(isFatal: Boolean): Unit = ()
 }
 object ScalaDagFactorySample {
@@ -180,7 +184,7 @@ object ScalaDagFactorySample {
       priority: Int,
       queue: String,
       appContext: ScalaDagContextSample,
-      jobConf: Option[String]): ScalaDagInstanceSample =
+      jobConf: Option[String]): ScalaDagFactorySample =
     new ScalaDagInstanceSample(dagId)
 }
 
