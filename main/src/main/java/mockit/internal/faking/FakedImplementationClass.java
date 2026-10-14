@@ -61,7 +61,7 @@ public final class FakedImplementationClass<T> {
             @NonNull
             @Override
             protected ClassVisitor createMethodBodyGenerator(@NonNull ClassReader typeReader) {
-                return new InterfaceImplementationGenerator(typeReader, interfaceToBeFaked, generatedClassName);
+                return new InterfaceImplementationGenerator(typeReader, interfaceToBeFaked, generatedClassName, true);
             }
         };
 
