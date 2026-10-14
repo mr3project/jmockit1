@@ -6,7 +6,7 @@ Bootstrap the locally installed agent first, then execute this isolated module:
 
 ```sh
 ./mvnw -pl main -am install -DskipTests -Dlicense.skip=true
-./mvnw -pl scalaCompatibility -am test -Dtest=ScalaFakingTest,ScalaDeencapsulationTest -Dsurefire.failIfNoSpecifiedTests=false -Dmodernizer.skip=true -Dlicense.skip=true
+./mvnw -pl scalaCompatibility -am test -Dtest=ScalaFakingTest,ScalaDeencapsulationTest,ScalaJunit4LifecycleTest -Dsurefire.failIfNoSpecifiedTests=false -Dmodernizer.skip=true -Dlicense.skip=true
 ```
 
 The second command uses the local `2.3.1.mr3.3.0` agent JAR through
