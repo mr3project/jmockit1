@@ -43,6 +43,7 @@ public final class InterfaceImplementationGenerator extends BaseClassModifier {
     private final MockedTypeInfo mockedTypeInfo;
     @NonNull
     private final String implementationClassDesc;
+    private final boolean forFaking;
     @NonNull
     private final List<String> implementedMethods;
     private String interfaceName;
@@ -52,9 +53,15 @@ public final class InterfaceImplementationGenerator extends BaseClassModifier {
 
     public InterfaceImplementationGenerator(@NonNull ClassReader cr, @NonNull Type mockedType,
             @NonNull String implementationClassName) {
+        this(cr, mockedType, implementationClassName, false);
+    }
+
+    public InterfaceImplementationGenerator(@NonNull ClassReader cr, @NonNull Type mockedType,
+            @NonNull String implementationClassName, boolean forFaking) {
         super(cr);
         mockedTypeInfo = new MockedTypeInfo(mockedType);
         implementationClassDesc = implementationClassName.replace('.', '/');
+        this.forFaking = forFaking;
         implementedMethods = new ArrayList<>();
     }
 
@@ -125,6 +132,14 @@ public final class InterfaceImplementationGenerator extends BaseClassModifier {
     private void generateMethodBody(int access, @NonNull String name, @NonNull String desc, @Nullable String signature,
             @Nullable String[] exceptions) {
         mw = cw.visitMethod(PUBLIC, name, desc, signature, exceptions);
+
+        if (forFaking) {
+            // MockUp intercepts only methods annotated with @Mock. Unfaked abstract
+            // methods must return JVM defaults; RecordAndReplayExecution can return
+            // Void.class as a sentinel, which is not a valid String or other value.
+            generateEmptyImplementation(desc);
+            return;
+        }
 
         String className = null;
 
