@@ -115,8 +115,7 @@ public final class FakeClassSetup {
         }
     }
 
-    private static void collectInterfaces(@NonNull Class<?> implementedInterface,
-            @NonNull Set<Class<?>> interfaces) {
+    private static void collectInterfaces(@NonNull Class<?> implementedInterface, @NonNull Set<Class<?>> interfaces) {
         if (interfaces.add(implementedInterface)) {
             for (Class<?> superInterface : implementedInterface.getInterfaces()) {
                 collectInterfaces(superInterface, interfaces);
